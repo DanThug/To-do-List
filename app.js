@@ -1,7 +1,9 @@
-const form = document.querySelector('.form-add-todo');
-const ul = document.querySelector('.todos-container');
+
+
+const formAddTodo = document.querySelector('.form-add-todo');
+const todosContainer = document.querySelector('.todos-container');
 const inputSearchTodo = document.querySelector('.form-search input');
-const alert = document.querySelector('.alert');
+const alertForInvalidTodo = document.querySelector('.alert');
 
 const setDataTrashIndex = () => {
   const trashIcon = document.querySelectorAll('.delete');
@@ -10,9 +12,9 @@ const setDataTrashIndex = () => {
     .forEach((icon, index) => icon.setAttribute('data-trash-index', index));
 }
 
-const todosInArray = () => Array.from(ul.children);
+const getTodos = () => Array.from(todosContainer.children);
 
-const todoAlreadyExists = inputValue => todosInArray().some(todo => todo.textContent.trim() === inputValue)
+const checkForDuplicatedTodos = inputValue => getTodos().some(todo => todo.textContent.trim() === inputValue)
 
 const insertTodo = text => {
   const li =
@@ -21,73 +23,80 @@ const insertTodo = text => {
     <i data-trash-index="" class="far fa-trash-alt delete"></i>
   </li>`;
 
-  ul.insertAdjacentHTML('afterbegin', li);
-  setTimeout(() => {
-    const firstElementOfLi = document.querySelectorAll('li')[0];
-    setDataTrashIndex();
-    firstElementOfLi.classList.add('fadeIn');
-    firstElementOfLi.classList.remove('fadeOut', 'fadeIn');
-  }, 700);
+  todosContainer.insertAdjacentHTML('afterbegin', li);
+  insertTodoEffect();
 }
 
-const searchTodo = value => {
-  const inputValue = value.trim().toLowerCase();
-  const todos = todosInArray();
+const insertTodoEffect = () => {
+  const firstElementOfUl = document.querySelectorAll('li')[0];
+
+  setTimeout(() => {
+    firstElementOfUl.classList.add('fadeIn');
+  }, 500);
+
+  setTimeout(() => {
+    firstElementOfUl.classList.remove('fadeOut', 'fadeIn');
+  }, 1000);
+
+  setDataTrashIndex();
+}
+
+const searchTodo = ({target}) => {
+  const inputValue = target.value.trim().toLowerCase();
+  const todos = getTodos();
 
   todos.forEach(todo => {
-    const containsValue = todo.textContent.toLocaleLowerCase().includes(inputValue);
+    const containsValue = todo.textContent.toLowerCase().includes(inputValue);
 
     if (containsValue) {
-      todo.classList.remove('hidden')
-    }else{
-      todo.classList.add('hidden')
+      todo.classList.remove('hidden');
+      return;
     }
+
+    todo.classList.add('hidden');
   });
 }
 
-deleteTodo = index => {
+const deleteTodo = index => {
   const li = document.querySelectorAll('li')[index];
   li.classList.add('fadeOut');
 
   setTimeout(() => {
     li.remove();
     setDataTrashIndex();
-  }, 700);
+  }, 800);
 }
 
 setDataTrashIndex();
 
 // LISTENERS
-ul.addEventListener('click', event => {
-  const trashClicked = event.target.classList.contains('delete');
+todosContainer.addEventListener('click', event => {
+  const trashWasClicked = event.target.classList.contains('delete');
 
-  if (trashClicked) {
+  if (trashWasClicked) {
     const dataTrashIndex = event.target.getAttribute('data-trash-index');
     deleteTodo(dataTrashIndex);
   }
 });
 
-inputSearchTodo.addEventListener('input', event => {
-  searchTodo(event.target.value);
-});
+inputSearchTodo.addEventListener('input', searchTodo);
 
-form.addEventListener('submit', event => {
+formAddTodo.addEventListener('submit', event => {
   event.preventDefault();
   
   const inputValue = event.target.add.value.trim();
-  const duplicateTodo = todoAlreadyExists(inputValue);
+  const duplicateTodo = checkForDuplicatedTodos(inputValue);
 
   if (!duplicateTodo && inputValue.length) {
     insertTodo(inputValue);
-    alert.classList.add('fadeOut');
-    alert.classList.remove('fadeIn');
-  }else{
-    setTimeout(() => {
-      alert.classList.add('fadeIn');
-      alert.classList.remove('fadeOut', 'hidden');
-    }, 700);
+    alertForInvalidTodo.classList.remove('fadeIn');
+    alertForInvalidTodo.classList.add('fadeOut');
+    event.target.reset();
+    return;
   }
 
-
-  event.target.reset();
+  setTimeout(() => {
+    alertForInvalidTodo.classList.add('fadeIn');
+    alertForInvalidTodo.classList.remove('fadeOut');
+  }, 700);
 });
