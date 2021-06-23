@@ -24,6 +24,7 @@ const insertTodo = text => {
   </li>`;
 
   todosContainer.insertAdjacentHTML('afterbegin', li);
+  setDataTrashIndex();
   insertTodoEffect();
 }
 
@@ -38,7 +39,6 @@ const insertTodoEffect = () => {
     firstElementOfUl.classList.remove('fadeOut', 'fadeIn');
   }, 1000);
 
-  setDataTrashIndex();
 }
 
 const searchTodo = ({target}) => {
